@@ -1,0 +1,45 @@
+{
+  // Notes left in the garden, for strangers to find.
+  //
+  // This is the one thing in Yara that is shared. You wander, you find a lantern,
+  // and inside it is something a stranger left behind. It is how the world says
+  // "other people have stood exactly where you are standing."
+  //
+  // SECURITY, deliberately: `create` is false. No client can write a note directly.
+  // Every note must pass through the `leaveNote` backend function, which screens it
+  // with AI first and only then writes it using the service role. A public wall in a
+  // mental-health app is a real duty of care, so the screening cannot be bypassed
+  // by calling the entity API from a console.
+  "name": "GardenNote",
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string",
+      "description": "What they left behind for whoever finds it."
+    },
+    "from_name": {
+      "type": "string",
+      "description": "How they signed it. Optional — the garden allows anonymity."
+    },
+    "lantern_x": {
+      "type": "number",
+      "description": "Where in the world this note's lantern glows."
+    },
+    "lantern_y": {
+      "type": "number",
+      "description": "Where in the world this note's lantern glows."
+    },
+    "found_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "How many people have found this note. Quietly tells a writer they were heard."
+    }
+  },
+  "required": ["message"],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": false
+  }
+}

@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-canvas text-ink font-sans antialiased;
+  letter-spacing: -0.014em;
+}
+
+::selection {
+  background: rgba(10, 132, 255, 0.16);
+}
+
+/* Premium gradient text for emphasis words */
+.gradient-text {
+  background: linear-gradient(115deg, #0a84ff 0%, #5e5ce6 55%, #bf5af2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frosted glass (nav, floating chips) */
+/* These chips float over a world that is moving under them, so the browser has to
+   recompute the backdrop every frame. A 22px blur plus saturation over a large retina
+   window is genuinely expensive in Safari, so the background carries most of the look
+   and the blur is kept light. */
+.glass {
+  background: rgba(255, 252, 246, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Subtle skeleton shimmer */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.04),
+    transparent
+  );
+  animation: shimmer 1.6s infinite;
+}
+
+/* Hide scrollbars on horizontal rails but keep scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

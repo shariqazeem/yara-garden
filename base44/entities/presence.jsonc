@@ -1,0 +1,51 @@
+{
+  // Who else is walking in the garden right now.
+  //
+  // Being visible is OPT-IN. The world is single-player until a person chooses to open
+  // the gate, because plenty of people come here precisely because they don't want to be
+  // perceived by anyone. Joining is a decision, never a default.
+  //
+  // SECURITY: clients cannot write to this table at all. Every heartbeat goes through the
+  // `heartbeat` backend function, which writes with the service role. The row stores only
+  // a SHA-256 *hash* of the visitor's secret session id, so the realtime feed that every
+  // other player receives never contains anything they could use to move someone else's
+  // character around. It also carries no account, no email, and no user id — presence is
+  // deliberately un-linkable to the private CompanionMemory row.
+  "name": "Presence",
+  "type": "object",
+  "properties": {
+    "session_key": {
+      "type": "string",
+      "description": "SHA-256 of the visitor's secret session id. Safe to broadcast; useless for writing."
+    },
+    "display_name": {
+      "type": "string",
+      "description": "The name they chose in the garden. No account name, no email, ever."
+    },
+    "avatar": {
+      "type": "string",
+      "enum": ["boy", "girl"],
+      "default": "boy",
+      "description": "Which character and companion to draw for them."
+    },
+    "x": { "type": "number", "description": "Where they are in the world." },
+    "y": { "type": "number", "description": "Where they are in the world." },
+    "mood_hue": {
+      "type": "string",
+      "default": "dawn",
+      "description": "The colour of their inner sky today, so the garden softly reflects the room's mood."
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Visitors fade out of the world when they go quiet."
+    }
+  },
+  "required": ["session_key"],
+  "rls": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": false
+  }
+}

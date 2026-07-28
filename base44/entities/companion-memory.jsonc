@@ -1,0 +1,69 @@
+{
+  // The heart of Yara: what she remembers about you.
+  //
+  // This is the most private data in the app — how a person feels, what they are
+  // carrying, what they told a companion at 3am. It is locked to its owner at the
+  // row level, so it is unreadable by anyone else including other signed-in players.
+  "name": "CompanionMemory",
+  "type": "object",
+  "properties": {
+    "intake": {
+      "type": "string",
+      "description": "What they first opened up about when they arrived in the garden."
+    },
+    "profile": {
+      "type": "string",
+      "description": "A living, model-distilled understanding of this person. Grows as they talk, so Yara's memory deepens instead of resetting."
+    },
+    "moods": {
+      "type": "array",
+      "description": "Recent mood check-ins, oldest first.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mood": { "type": "string" },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "feelings": {
+      "type": "array",
+      "description": "The daily inner sky they paint, expressed through play rather than a form.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "sky": { "type": "string" },
+          "words": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "talks": {
+      "type": "object",
+      "description": "Conversation history keyed by character id (yara, sol, juno, elias...)."
+    },
+    "progress": {
+      "type": "object",
+      "description": "Their journey through the world: light gathered, milestones, friends met."
+    },
+    "display_name": {
+      "type": "string",
+      "description": "What they asked to be called in the garden."
+    },
+    "device_key": {
+      "type": "string",
+      "description": "SHA-256 of a secret device id, for visitors with no account. Lets Yara remember someone who never signed up, without ever knowing who they are. Written only by the `memory` backend function; a signed-in person's row is owned by them instead."
+    },
+    "last_visit": {
+      "type": "string",
+      "format": "date-time",
+      "description": "So Yara can say welcome back instead of hello."
+    }
+  },
+  "rls": {
+    "create": true,
+    "read": { "created_by": "{{user.email}}" },
+    "update": { "created_by": "{{user.email}}" },
+    "delete": { "created_by": "{{user.email}}" }
+  }
+}

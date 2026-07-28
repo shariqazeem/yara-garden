@@ -1,0 +1,16 @@
+/node_modules
+/.next
+/out
+/build
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+.env
+.vercel
+*.tsbuildinfo
+
+# Links this checkout to a specific Base44 app — machine-local, not source.
+base44/.app.jsonc
+base44/.types
+

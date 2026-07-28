@@ -1,0 +1,16 @@
+{
+  // Yara — a gentle world to heal.
+  // A hand-painted garden you walk into when life gets heavy, with a companion
+  // who remembers you. Backend runs entirely on Base44.
+  "name": "Yara Garden",
+  "description": "A gentle world to heal. Walk into a hand-painted garden, breathe, and meet a companion who remembers you — and never walks you into harm.",
+  "visibility": "public",
+  "entitiesDir": "./entities",
+  "functionsDir": "./functions",
+  "site": {
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "serveCommand": "npm run dev",
+    "outputDirectory": "./out"
+  }
+}

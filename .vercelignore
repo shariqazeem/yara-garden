@@ -1,0 +1,4 @@
+.next
+node_modules
+.vercel
+public/_raw_art_backup
