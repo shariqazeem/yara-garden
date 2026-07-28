@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { ask } from "./ai.ts";
 
 /**
  * The "she actually remembers me" moment.
@@ -61,13 +62,8 @@ Recent moods: ${moods.join(", ") || "(none)"}
 ${feeling ? feeling + "\n" : ""}
 Write only Yara's greeting${feeling ? ", and gently let it hold today's feeling" : ""}. No name prefix, no quotation marks.`;
 
-  try {
-    const greeting = await base44.integrations.Core.InvokeLLM({ prompt });
-    const text = typeof greeting === "string" ? greeting.trim() : "";
-    return Response.json({
-      greeting: text || `Hey${who} — I've been thinking about you. How are you today?`,
-    });
-  } catch (_err) {
-    return Response.json({ greeting: `Hey${who} — I'm really glad you're here. How are you, truly?` });
-  }
+  const text = await ask(base44, prompt, 150);
+  return Response.json({
+    greeting: text || `Hey${who} — I've been thinking about you. How are you today?`,
+  });
 }

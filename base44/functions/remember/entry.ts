@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { ask } from "./ai.ts";
 
 /**
  * How Yara actually remembers you.
@@ -52,14 +53,10 @@ ${convo}
 
 Return the updated profile.`;
 
+  // Keep the old profile rather than losing what she already knew.
   let updated = profile;
-  try {
-    const result = await base44.integrations.Core.InvokeLLM({ prompt });
-    if (typeof result === "string" && result.trim()) updated = result.trim();
-  } catch (_err) {
-    // Keep the old profile rather than losing what she already knew.
-    return Response.json({ profile });
-  }
+  const result = await ask(base44, prompt, 360);
+  if (result) updated = result;
 
   // Persist it for this person, if they are signed in. Row-level security on
   // CompanionMemory means this row is readable only by them.

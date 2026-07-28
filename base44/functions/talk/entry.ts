@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { ask } from "./ai.ts";
 
 /**
  * Yara, listening.
@@ -92,12 +93,7 @@ ${transcript}
 
 Write only your next reply, as Yara. No name prefix, no quotation marks.`;
 
-  try {
-    const reply = await base44.integrations.Core.InvokeLLM({ prompt });
-    const text = typeof reply === "string" ? reply.trim() : "";
-    return Response.json({ reply: text || "I'm here. Tell me a little more?" });
-  } catch (_err) {
-    // Never leave someone talking to a blank screen.
-    return Response.json({ reply: "I'm right here with you. Want to tell me a bit more?" });
-  }
+  // Never leave someone talking to a blank screen.
+  const text = await ask(base44, prompt, 300);
+  return Response.json({ reply: text || "I'm right here with you. Want to tell me a bit more?" });
 }

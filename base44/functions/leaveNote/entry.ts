@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { askJson } from "./ai.ts";
 
 /**
  * Leaving a note.
@@ -83,9 +84,19 @@ export default async function (req: Request) {
 
   // 4. They asked to share it. Screen before it can reach a stranger.
   let screen: Screen = { safe: true, in_distress: false };
-  try {
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are screening a short note that someone has asked to leave in a public healing garden, where strangers who are struggling will find it.
+  const SCREEN_SCHEMA = {
+    type: "object",
+    properties: {
+      safe: { type: "boolean" },
+      in_distress: { type: "boolean" },
+      reason: { type: "string", description: "A few words, for the log only." },
+    },
+    required: ["safe", "in_distress"],
+  };
+
+  const result = await askJson<Screen>(
+    base44,
+    `You are screening a short note that someone has asked to leave in a public healing garden, where strangers who are struggling will find it.
 
 Decide two things:
 - "safe": is this note safe for a hurting stranger to stumble on? Notes that are gentle, hopeful, sad-but-kind, or simply honest are safe. Notes containing abuse, harassment, hate, graphic content, spam, advertising, or anything that could push a vulnerable reader further down are NOT safe.
@@ -93,25 +104,18 @@ Decide two things:
 
 The note:
 """${message}"""`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          safe: { type: "boolean" },
-          in_distress: { type: "boolean" },
-          reason: { type: "string", description: "A few words, for the log only." },
-        },
-        required: ["safe", "in_distress"],
-      },
-    });
-    if (result && typeof result === "object") screen = { ...screen, ...(result as Screen) };
-  } catch (_err) {
-    // If the screen itself fails, fail CLOSED — the private delivery already happened.
+    SCREEN_SCHEMA,
+  );
+
+  // If the screen itself fails, fail CLOSED — the private delivery already happened.
+  if (!result) {
     return Response.json({
       ok: true,
       published: false,
       reply: "Your note reached the keeper. The garden was too quiet to hang a lantern just now.",
     });
   }
+  screen = { ...screen, ...result };
 
   if (screen.in_distress) {
     return Response.json({ ok: true, published: false, needs_support: true, reply: SUPPORT_REPLY });

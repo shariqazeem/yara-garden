@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { askJson } from "./ai.ts";
 
 /**
  * The arrival: a short, gentle intake when someone first walks into the garden.
@@ -70,47 +71,40 @@ ${convo}
 
 Return the next step.`;
 
-  try {
-    const step = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          done: { type: "boolean", description: "True when the intake is finished." },
-          question: { type: "string", description: "The next short, warm question. Empty when done." },
-          options: {
-            type: "array",
-            items: { type: "string" },
-            description: "2-4 short tappable answers. Empty when done.",
-          },
-          reflection: {
-            type: "string",
-            description: "Two warm sentences reflecting what was heard. Only when done.",
-          },
-        },
-        required: ["done"],
+  const STEP_SCHEMA = {
+    type: "object",
+    properties: {
+      done: { type: "boolean", description: "True when the intake is finished." },
+      question: { type: "string", description: "The next short, warm question. Empty when done." },
+      options: {
+        type: "array",
+        items: { type: "string" },
+        description: "2-4 short tappable answers. Empty when done.",
       },
-    }) as { done?: boolean; question?: string; options?: string[]; reflection?: string };
+      reflection: {
+        type: "string",
+        description: "Two warm sentences reflecting what was heard. Only when done.",
+      },
+    },
+    required: ["done"],
+  };
 
-    // Hard cap: never exceed MAX_Q questions, whatever the model wants.
-    const outOfQuestions = answers.length >= MAX_Q;
-    if (!step || step.done || outOfQuestions || !step.question) {
-      return Response.json({
-        done: true,
-        reflection:
-          step?.reflection?.trim() ||
-          "Thank you for trusting me with that. Let's take the next gentle step together.",
-      });
-    }
+  type Step = { done?: boolean; question?: string; options?: string[]; reflection?: string };
+  const step = await askJson<Step>(base44, prompt, STEP_SCHEMA, 400);
 
-    return Response.json({
-      question: step.question,
-      options: Array.isArray(step.options) && step.options.length ? step.options.slice(0, 4) : ["Yes", "Not really"],
-    });
-  } catch (_err) {
+  // Hard cap: never exceed MAX_Q questions, whatever the model wants.
+  const outOfQuestions = answers.length >= MAX_Q;
+  if (!step || step.done || outOfQuestions || !step.question) {
     return Response.json({
       done: true,
-      reflection: "Thank you for trusting me with that. Let's take the next gentle step together.",
+      reflection:
+        step?.reflection?.trim() ||
+        "Thank you for trusting me with that. Let's take the next gentle step together.",
     });
   }
+
+  return Response.json({
+    question: step.question,
+    options: Array.isArray(step.options) && step.options.length ? step.options.slice(0, 4) : ["Yes", "Not really"],
+  });
 }
