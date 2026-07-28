@@ -33,6 +33,9 @@ const ROUTES: Record<string, string> = {
   path: "path",
   reflect: "reflect",
   portrait: "portrait",
+  // The shared garden. Base44 answers this as `heartbeat`; the standalone deployment
+  // answers the same shape at /api/presence, which the fallback below reaches.
+  presence: "heartbeat",
 };
 
 /**
@@ -70,8 +73,10 @@ export function installApiBridge() {
       return jsonResponse({ error: "not available on this deployment" }, 501);
     }
 
+    // Anything with no Base44 equivalent (the lantern list, for one) goes straight to
+    // this deployment's own server, if it has one.
     const fn = ROUTES[name];
-    if (!fn) return jsonResponse({ error: "unknown route" }, 404);
+    if (!fn) return nativeFetch(input as RequestInfo, init);
 
     let payload: Record<string, unknown> = {};
     try {
@@ -86,6 +91,16 @@ export function installApiBridge() {
       // invoke() returns the raw axios response — the function's JSON is on `.data`.
       return jsonResponse(res.data ?? {});
     } catch (err: unknown) {
+      // Base44 didn't answer. That could be an outage, an exhausted quota, or the app no
+      // longer existing at all. If this deployment carries its own route handlers, use
+      // them, so the world keeps working on its own. On the static Base44 build there is
+      // no server here and this simply 404s, leaving the original error to surface.
+      try {
+        const direct = await nativeFetch(input as RequestInfo, init);
+        if (direct.ok) return direct;
+      } catch {
+        /* no local server either — fall through to the error below */
+      }
       // Surface the function's own error body when there is one, so callers keep
       // their existing error handling and the person never sees a blank screen.
       const data = (err as { response?: { data?: unknown } })?.response?.data;

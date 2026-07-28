@@ -14,3 +14,6 @@ npm-debug.log*
 base44/.app.jsonc
 base44/.types
 
+
+# Generated for the Vercel build by scripts/api-routes.mjs; source lives in server/api
+/app/api

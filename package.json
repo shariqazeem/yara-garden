@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/api-routes.mjs on && next dev",
+    "build": "node scripts/api-routes.mjs on && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:base44": "node scripts/api-routes.mjs off && BASE44_STATIC=1 next build"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.40",

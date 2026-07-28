@@ -42,14 +42,22 @@ export function GardenNotes({ worldW = 1500, worldH = 1150 }: { worldW?: number;
     let alive = true;
 
     (async () => {
+      let rows: Note[] = [];
       try {
-        const rows = (await base44.entities.GardenNote.list("-created_date", 200, 0)) as Note[];
-        if (!alive) return;
-        rows.forEach((n) => seen.current.add(n.id));
-        setNotes(rows);
+        rows = (await base44.entities.GardenNote.list("-created_date", 200, 0)) as Note[];
       } catch {
-        /* the garden simply has no lanterns tonight */
+        // Base44 is out of reach. This deployment may keep its own lanterns, so ask it
+        // directly before giving up. On the static build this simply 404s.
+        try {
+          const r = await fetch("/api/garden-notes");
+          if (r.ok) rows = ((await r.json())?.notes ?? []) as Note[];
+        } catch {
+          /* the garden simply has no lanterns tonight */
+        }
       }
+      if (!alive || !rows.length) return;
+      rows.forEach((n) => seen.current.add(n.id));
+      setNotes(rows);
     })();
 
     let unsubscribe: (() => void) | undefined;

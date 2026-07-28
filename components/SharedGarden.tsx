@@ -84,18 +84,25 @@ export function useSharedGarden(opts: { x: number; y: number; name: string; avat
 
     const beat = async (leaving = false) => {
       try {
-        const res = await base44.functions.invoke("heartbeat", {
-          sessionId: sid,
-          name: pos.current.name,
-          avatar: pos.current.avatar,
-          x: pos.current.x,
-          y: pos.current.y,
-          leaving,
+        // Goes through the adapter in lib/base44.ts, which tries Base44's `heartbeat`
+        // first and falls back to this deployment's own /api/presence. That is what lets
+        // the shared garden keep working on yara.garden with Base44 out of the picture.
+        const r = await fetch("/api/presence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: sid,
+            name: pos.current.name,
+            avatar: pos.current.avatar,
+            x: pos.current.x,
+            y: pos.current.y,
+            leaving,
+          }),
         });
         if (!alive || leaving) return;
-        if (res?.data?.meId) meId.current = res.data.meId as string;
-        const list = (res?.data?.others ?? []) as Visitor[];
-        setOthers(list.filter((o) => o.id !== meId.current));
+        const data = (await r.json()) as { meId?: string; others?: Visitor[] };
+        if (data?.meId) meId.current = data.meId;
+        setOthers((data?.others ?? []).filter((o) => o.id !== meId.current));
       } catch {
         /* a dropped beat just means we reappear on the next one */
       }
