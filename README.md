@@ -13,11 +13,32 @@ Built for the **Base44 one-week dev challenge**.
 
 ## What it runs on
 
-The app has no server of its own. The world is a static single-page build, and everything
-behind it — the data, the accounts, the AI, the realtime layer, the hosting — is Base44.
+**The submission build has no server of its own.** The world is a static single-page
+export, and everything behind it, the data, the accounts, the AI, the realtime layer and
+the hosting, is Base44. Built with `npm run build:base44` and deployed with
+`base44 deploy`, it is what runs at the live URL above. A `POST /api/talk` there returns
+405, because there is nothing to POST to: every one of those calls is a Base44 backend
+function.
 
-There is no external AI provider, no separate database, and no auth service. The only secret
-in the project is a webhook URL for delivering private notes.
+### A second build target
+
+The same source also builds a standalone version, which is what runs on the author's own
+domain. It carries its own Next.js route handlers and talks directly to a model provider
+and a Redis instance, so the world keeps running for the people who use it even if this
+Base44 app is ever wound down.
+
+`scripts/api-routes.mjs` picks the target. The routes live in `server/api` and are copied
+into `app/api` only for the standalone build, since Next refuses to static-export a project
+containing route handlers. The client adapter tries Base44 first either way and only falls
+through to a local server if Base44 cannot be reached.
+
+This is not a hedge against the platform. Base44 is the primary path in both builds, and
+the standalone one exists because a place people come to when they are struggling should
+not quietly disappear on them.
+
+Two things are duplicated server-side across both, deliberately: the crisis guard and the
+note screening. The alternative is running them in the browser, where a person could edit
+them out, and that is not acceptable in this app.
 
 ---
 
