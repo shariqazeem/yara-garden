@@ -124,6 +124,9 @@ export default async function (req: Request) {
   // to every player, including their own, so without this a person sees a ghost of
   // themselves drifting across the world and merging into their character.
   let meId: string | null = mine?.id ?? null;
+  // No row yet means this is an arrival rather than one of the every-two-second updates,
+  // so it's the one moment worth telling the keeper about.
+  const justArrived = !mine;
   try {
     if (mine) await db.update(mine.id, patch);
     else {
@@ -166,6 +169,41 @@ export default async function (req: Request) {
   }
 
   const others = Array.from(freshest.values());
+
+  /*
+    Tell the keeper when someone opens the gate, so they can come and be there too.
+
+    Only on arrival, never on the two-second heartbeats, or this would be thousands of
+    messages an hour. It fires after the others are counted so the message can say whether
+    the person walked into an empty garden or a populated one.
+
+    No new privacy surface: a display name in the shared garden is already visible to every
+    other player who has the gate open. Anyone who never opens it is never mentioned here.
+  */
+  if (justArrived) {
+    const hook = Deno.env.get("PRESENCE_WEBHOOK_URL") ?? Deno.env.get("NOTE_WEBHOOK_URL");
+    if (hook) {
+      const who = patch.display_name || "Someone";
+      const pet = patch.avatar === "girl" ? "🐧" : "🐤";
+      const company =
+        others.length === 0
+          ? "_They're the only one in the garden right now._"
+          : `_${others.length} other${others.length === 1 ? " is" : "s are"} wandering there too._`;
+      try {
+        await fetch(hook, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `🌿 **${who}** just opened the gate and stepped into the shared garden ${pet}\n${company}`,
+          }),
+          // Short, because a person is waiting on this response to see the world.
+          signal: AbortSignal.timeout(4_000),
+        });
+      } catch {
+        /* never hold up someone's arrival for a notification */
+      }
+    }
+  }
 
   return Response.json({
     ok: true,
