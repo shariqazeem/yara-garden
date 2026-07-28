@@ -1,6 +1,6 @@
 # Yara — a gentle world to heal
 
-**Live:** https://yara-f72cc7e8.base44.app
+**Live:** https://yara-garden.base44.app
 
 A hand-painted garden you can walk into when life gets heavy. You arrive at dawn, you
 breathe, and a companion meets you — one who remembers what you told her last time. No
@@ -119,7 +119,8 @@ Browser (static SPA, Next.js export)
    ├── entities ............. CompanionMemory (private)  GardenNote (public, read-only)
    │                          Presence (realtime, service-role writes only)
    │
-   └── functions ............ talk · greet · companion · remember · leaveNote · heartbeat
+   └── functions ............ talk · greet · companion · remember · memory · leaveNote
+                              heartbeat · insight · reflect · path · portrait
                               (Deno, service role where it matters, AI via InvokeLLM)
 ```
 

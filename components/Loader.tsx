@@ -38,22 +38,33 @@ type Phase = "waiting" | "walking" | "meeting" | "hugging" | "leaving";
  */
 const GROUND = "22%";
 
+/**
+ * Once they converge, both penguins sit on the SAME percentage and are separated by a
+ * fixed pixel offset instead.
+ *
+ * This matters more than it looks. The penguins are a fixed 40px, so separating them by a
+ * percentage means the gap between them grows with the window: a pair that touched on an
+ * 800px preview stood 12px apart on a 1920px display, and the hug never closed at all.
+ * Pixels here, percentages only for the long walk in.
+ */
+const CENTER = "49.5%";
+const GAP = { walking: 34, meeting: 21, hugging: 15, leaving: 9 };
+
 const MARKS = {
   left: {
-    waiting: { left: "6%", bottom: GROUND, scale: 1, opacity: 0 },
-    walking: { left: "44.2%", bottom: GROUND, scale: 1, opacity: 1 },
-    meeting: { left: "45.4%", bottom: GROUND, scale: 1, opacity: 1 },
-    hugging: { left: "46.2%", bottom: GROUND, scale: 1, opacity: 1 },
-    // Close enough to be touching as they go. They left together; they shouldn't walk
-    // away with a gap between them.
-    leaving: { left: "48.3%", bottom: "33%", scale: 0.52, opacity: 0.72 },
+    waiting: { left: "6%", x: 0, bottom: GROUND, scale: 1, opacity: 0 },
+    walking: { left: CENTER, x: -GAP.walking, bottom: GROUND, scale: 1, opacity: 1 },
+    meeting: { left: CENTER, x: -GAP.meeting, bottom: GROUND, scale: 1, opacity: 1 },
+    hugging: { left: CENTER, x: -GAP.hugging, bottom: GROUND, scale: 1, opacity: 1 },
+    // They left together; they shouldn't walk away with a gap between them.
+    leaving: { left: CENTER, x: -GAP.leaving, bottom: "33%", scale: 0.52, opacity: 0.72 },
   },
   right: {
-    waiting: { left: "90%", bottom: GROUND, scale: 1, opacity: 0 },
-    walking: { left: "51.6%", bottom: GROUND, scale: 1, opacity: 1 },
-    meeting: { left: "50.4%", bottom: GROUND, scale: 1, opacity: 1 },
-    hugging: { left: "49.6%", bottom: GROUND, scale: 1, opacity: 1 },
-    leaving: { left: "50.0%", bottom: "33%", scale: 0.52, opacity: 0.72 },
+    waiting: { left: "90%", x: 0, bottom: GROUND, scale: 1, opacity: 0 },
+    walking: { left: CENTER, x: GAP.walking, bottom: GROUND, scale: 1, opacity: 1 },
+    meeting: { left: CENTER, x: GAP.meeting, bottom: GROUND, scale: 1, opacity: 1 },
+    hugging: { left: CENTER, x: GAP.hugging, bottom: GROUND, scale: 1, opacity: 1 },
+    leaving: { left: CENTER, x: GAP.leaving, bottom: "33%", scale: 0.52, opacity: 0.72 },
   },
 } as const;
 
